@@ -1,0 +1,2 @@
+This folder previously contained a legacy StudentDashboard.jsx that used older components.
+The app now uses StudentDashboardStyled.jsx. If the old page persists, delete it manually in your Git client.

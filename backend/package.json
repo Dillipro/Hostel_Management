@@ -1,0 +1,62 @@
+{
+  "name": "ceg-hostel-backend",
+  "version": "1.0.0",
+  "description": "CEG Digital Hostel Management System - Backend API",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "nodemon server.js",
+  "seed": "node scripts/seedData.js",
+  "seed:phase2": "node scripts/seedPhase2.js",
+    "test": "jest"
+  },
+  "keywords": [
+    "hostel",
+    "management",
+    "ceg",
+    "anna-university",
+    "api"
+  ],
+  "authors": [
+    "Dilli Babu R - 2023115086",
+    "Jothi Prakesh B - 2023115111",
+    "Manoj Kumar K - 2023115314"
+  ],
+  "license": "MIT",
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "cloudinary": "^1.40.0",
+    "cookie-parser": "^1.4.7",
+    "cors": "^2.8.5",
+    "crypto": "^1.0.1",
+    "csv-parse": "^5.5.6",
+    "dotenv": "^16.3.1",
+    "exceljs": "^4.4.0",
+    "express": "^4.18.2",
+    "express-rate-limit": "^6.10.0",
+    "express-validator": "^7.0.1",
+    "helmet": "^7.0.0",
+    "jsonwebtoken": "^9.0.2",
+    "lodash": "^4.17.21",
+    "moment": "^2.29.4",
+    "moment-timezone": "^0.5.45",
+    "mongoose": "^7.5.0",
+    "morgan": "^1.10.0",
+    "multer": "^1.4.5-lts.1",
+    "node-cron": "^3.0.2",
+    "nodemailer": "^6.9.4",
+    "otplib": "^12.0.1",
+    "pdfkit": "^0.13.0",
+    "qrcode": "^1.5.3",
+    "razorpay": "^2.9.2",
+    "socket.io": "^4.7.2",
+    "stripe": "^13.5.0",
+    "winston": "^3.10.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.5.0",
+    "jest": "^29.6.2",
+    "nodemon": "^3.0.1",
+    "supertest": "^6.3.3"
+  }
+}

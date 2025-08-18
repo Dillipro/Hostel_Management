@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/ceg-logo.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="CEG Digital Hostel Management System - College of Engineering, Guindy, Anna University" />
+    <meta name="keywords" content="CEG, Anna University, Hostel Management, Digital, Student Portal" />
+    <title>CEG Hostel Connect - Digital Hostel Management</title>
+    
+    <!-- Preconnect to external domains -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- PWA Meta Tags -->
+    <meta name="theme-color" content="#1e3a8a" />
+    <link rel="manifest" href="/manifest.json" />
+    
+    <!-- Apple Touch Icons -->
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+    
+    <!-- Open Graph Meta Tags -->
+    <meta property="og:title" content="CEG Hostel Connect - Digital Hostel Management" />
+    <meta property="og:description" content="Smart Digital Hostel Management System for College of Engineering, Guindy - Anna University" />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://ceg-hostel.edu.in" />
+    <meta property="og:image" content="/og-image.png" />
+    
+    <!-- Twitter Card Meta Tags -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="CEG Hostel Connect" />
+    <meta name="twitter:description" content="Digital Hostel Management System for CEG Students" />
+    <meta name="twitter:image" content="/twitter-image.png" />
+    
+    <!-- Critical CSS Inline -->
+    <style>
+      /* Loading spinner styles */
+      .loading-spinner {
+        display: inline-block;
+        width: 40px;
+        height: 40px;
+        border: 3px solid #f3f3f3;
+        border-radius: 50%;
+        border-top: 3px solid #1e3a8a;
+        animation: spin 1s linear infinite;
+      }
+      
+      @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+      }
+      
+      /* Initial loading screen */
+      #initial-loader {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        z-index: 9999;
+        color: white;
+      }
+      
+      .fade-out {
+        opacity: 0;
+        transition: opacity 0.5s ease-out;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Initial Loading Screen -->
+    <div id="initial-loader">
+      <div class="text-center">
+        <img src="/ceg-logo.svg" alt="CEG Logo" style="width: 80px; height: 80px; margin-bottom: 20px;" />
+        <h1 style="font-size: 24px; margin-bottom: 10px; font-weight: 600;">CEG Hostel Connect</h1>
+        <p style="font-size: 16px; margin-bottom: 30px; opacity: 0.9;">Digital Hostel Management System</p>
+        <div class="loading-spinner"></div>
+        <p style="font-size: 14px; margin-top: 20px; opacity: 0.8;">Loading...</p>
+      </div>
+    </div>
+    
+    <!-- React App Root -->
+    <div id="root"></div>
+    
+    <!-- Service Worker Registration -->
+    <script>
+      // Remove initial loader when app loads
+      window.addEventListener('load', () => {
+        const loader = document.getElementById('initial-loader');
+        if (loader) {
+          loader.classList.add('fade-out');
+          setTimeout(() => {
+            loader.style.display = 'none';
+          }, 500);
+        }
+      });
+      
+      // Service Worker Registration (for PWA)
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/sw.js')
+            .then((registration) => {
+              console.log('SW registered: ', registration);
+            })
+            .catch((registrationError) => {
+              console.log('SW registration failed: ', registrationError);
+            });
+        });
+      }
+    </script>
+    
+    <script type="module" src="/src/main.jsx"></script>
+  </body>
+</html>
