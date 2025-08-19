@@ -18,7 +18,7 @@ router.post('/entry', async (req, res) => {
     if (String(student.accessControl?.messId) !== String(messId)) return res.status(403).json({ success: false, message: 'Not assigned to this mess' });
     if (!student.hostelApplication?.fees?.messFeePaid) return res.status(402).json({ success: false, message: 'Mess fee not paid' });
 
-    // Increment today count
+  // Increment today count
     const today = new Date(); today.setHours(0,0,0,0);
     const existing = (mess.attendance || []).find(a => new Date(a.date).getTime() === today.getTime() && a.mealType === mealType);
     if (existing) {
@@ -26,6 +26,12 @@ router.post('/entry', async (req, res) => {
     } else {
       await Mess.updateOne({ _id: messId }, { $push: { attendance: { date: today, mealType, totalCount: 1 } } });
     }
+
+    // Track serving per student for billing analytics
+    try {
+      const MessServing = require('../models/MessServing');
+      await MessServing.updateOne({ studentId, date: today, mealType }, { $setOnInsert: { studentId, messId, date: today, mealType } }, { upsert: true });
+    } catch (_) {}
 
     // Emit to mess room
     const io = global.__io; if (io) io.to(`mess:${messId}`).emit('mess-entry', { student: { id: student._id, name: student.name, regNo: student.regNo }, mealType, at: new Date() });

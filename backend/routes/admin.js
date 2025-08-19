@@ -10,6 +10,7 @@ const Notification = require('../models/Notification');
 const AuditLog = require('../models/AuditLog');
 const { sendNotification } = require('../utils/notification');
 const IoTDevice = require('../models/IoTDevice');
+const hostelManagementRouter = require('./hostelManagement');
 
 // Ensure admin roles
 router.use(authenticateToken, authorizeRoles(['admin', 'super_admin']));
@@ -150,12 +151,42 @@ router.post('/mess', async (req, res) => {
   } catch (e) { res.status(400).json({ success: false, message: e.message }); }
 });
 
+// List messes (optional filters)
+router.get('/mess', async (req, res) => {
+  try {
+    const { hostelId, isActive } = req.query;
+    const q = { ...(hostelId && { hostelId }), ...(isActive != null && { isActive: isActive === 'true' }) };
+    const list = await Mess.find(q).sort({ updatedAt: -1 }).lean();
+    res.json({ success: true, data: list });
+  } catch (e) { res.status(500).json({ success: false, message: e.message }); }
+});
+
+// Get one mess
+router.get('/mess/:id', async (req, res) => {
+  try {
+    const mess = await Mess.findById(req.params.id).lean();
+    if (!mess) return res.status(404).json({ success: false, message: 'Mess not found' });
+    res.json({ success: true, data: mess });
+  } catch (e) { res.status(400).json({ success: false, message: e.message }); }
+});
+
 router.put('/mess/:id', async (req, res) => {
   try {
     const mess = await Mess.findByIdAndUpdate(req.params.id, req.body, { new: true });
     res.json({ success: true, data: mess });
   } catch (e) { res.status(400).json({ success: false, message: e.message }); }
 });
+
+// Delete mess
+router.delete('/mess/:id', async (req, res) => {
+  try {
+    const mess = await Mess.findByIdAndDelete(req.params.id);
+    if (!mess) return res.status(404).json({ success: false, message: 'Mess not found' });
+    res.json({ success: true, message: 'Mess deleted' });
+  } catch (e) { res.status(400).json({ success: false, message: e.message }); }
+});
+
+// Reports endpoints are defined explicitly later in this file.
 
 // Warden assignment
 router.post('/wardens/assign', async (req, res) => {

@@ -17,6 +17,7 @@ import {
   ComputerDesktopIcon
 } from '@heroicons/react/24/outline';
 import { theme, Container, Flex, GlassCard, GradientText, AnimatedButton } from '../../styles/GlobalStyles';
+import { useAuthStore } from '../../stores/useAuthStore'
 
 // Advanced Styled Components
 const LoginPageContainer = styled.div`
@@ -461,7 +462,7 @@ const DeviceInfo = styled(motion.div)`
 
 const LoginPageStyled = () => {
   const [formData, setFormData] = useState({
-    email: '',
+    identifier: '',
     password: '',
     rememberMe: false
   });
@@ -479,6 +480,8 @@ const LoginPageStyled = () => {
     }
   }, [location.state]);
 
+  const doLogin = useAuthStore(s => s.login)
+  const getDashboardRoute = useAuthStore(s => s.getDashboardRoute)
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
@@ -486,16 +489,13 @@ const LoginPageStyled = () => {
     setSuccess('');
     
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
-      if (formData.email === 'admin@ceg.edu' && formData.password === 'admin123') {
-        setSuccess('Login successful! Welcome back.');
-        setTimeout(() => {
-          navigate('/admin/dashboard');
-        }, 1500);
+      const res = await doLogin(formData.identifier, formData.password, formData.rememberMe)
+      if (res.success) {
+        navigate(getDashboardRoute())
+      } else if (res.requiresVerification) {
+        navigate('/verify-otp', { state: { userId: res.userId } })
       } else {
-        setErrors({ general: 'Invalid email or password' });
+        setErrors({ general: res.message || 'Invalid credentials' })
       }
     } catch (error) {
       setErrors({ general: 'Login failed. Please try again.' });
@@ -547,17 +547,12 @@ const LoginPageStyled = () => {
       </AnimatedBackground>
 
       {/* Back Button */}
-      <BackButton
-        onClick={() => navigate('/')}
-        whileHover={{ scale: 1.05 }}
-        whileTap={{ scale: 0.95 }}
-        initial={{ x: -100, opacity: 0 }}
-        animate={{ x: 0, opacity: 1 }}
-        transition={{ duration: 0.6, delay: 0.8 }}
-      >
-        <ArrowLeftIcon />
-        Back to Home
-      </BackButton>
+      <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} initial={{ x: -100, opacity: 0 }} animate={{ x: 0, opacity: 1 }} transition={{ duration: 0.6, delay: 0.8 }} style={{ all:'unset' }}>
+        <BackButton onClick={() => navigate('/') }>
+          <ArrowLeftIcon />
+          Back to Home
+        </BackButton>
+      </motion.button>
 
       {/* Main Login Container */}
       <LoginContainer
@@ -633,23 +628,23 @@ const LoginPageStyled = () => {
           </AnimatePresence>
 
           <Form onSubmit={handleSubmit}>
-            {/* Email Input */}
+            {/* Identifier Input (Email or User ID) */}
             <InputGroup
               initial={{ x: -50, opacity: 0 }}
               animate={{ x: 0, opacity: 1 }}
               transition={{ duration: 0.6, delay: 0.6 }}
             >
-              <InputLabel>Email Address</InputLabel>
+              <InputLabel>Email or User ID</InputLabel>
               <InputContainer>
                 <InputIcon>
                   <UserIcon />
                 </InputIcon>
                 <Input
-                  type="email"
-                  placeholder="Enter your email address"
-                  value={formData.email}
-                  onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
-                  className={errors.email ? 'error' : formData.email ? 'success' : ''}
+                  type="text"
+                  placeholder="Enter your email or user ID"
+                  value={formData.identifier}
+                  onChange={(e) => setFormData(prev => ({ ...prev, identifier: e.target.value }))}
+                  className={errors.identifier ? 'error' : formData.identifier ? 'success' : ''}
                   required
                 />
               </InputContainer>
@@ -710,12 +705,8 @@ const LoginPageStyled = () => {
               animate={{ y: 0, opacity: 1 }}
               transition={{ duration: 0.6, delay: 0.9 }}
             >
-              <LoginButton
-                type="submit"
-                disabled={isLoading}
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-              >
+              <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} style={{ width:'100%', border:'none', background:'transparent', padding:0 }}>
+              <LoginButton type="submit" disabled={isLoading}>
                 {isLoading ? (
                   <motion.div
                     animate={{ rotate: 360 }}
@@ -735,6 +726,7 @@ const LoginPageStyled = () => {
                   </>
                 )}
               </LoginButton>
+              </motion.button>
             </motion.div>
 
             {/* Divider */}

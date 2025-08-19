@@ -8,6 +8,8 @@ const ExcelJS = require('exceljs');
 const PDFDocument = require('pdfkit');
 const { drawHeader, drawFooter } = require('../utils/pdf');
 const { Hostel, Block, Mess } = require('../models/HostelInfrastructure');
+const MessMetrics = require('../models/MessMetrics');
+const Bill = require('../models/Bill');
 
 router.use(authenticateToken);
 
@@ -59,6 +61,41 @@ router.get('/complaints', authorizeRoles(['warden', 'admin', 'super_admin']), as
 });
 
 module.exports = router;
+// Dashboard: Collections trend by month (paid bills)
+router.get('/dashboard/collections-trend', authorizeRoles(['admin','super_admin','accounts']), async (req, res) => {
+  try {
+    const { months = 6 } = req.query;
+    const start = new Date(); start.setMonth(start.getMonth() - (parseInt(months) - 1)); start.setDate(1); start.setHours(0,0,0,0);
+    const bills = await Bill.aggregate([
+      { $match: { status: 'paid', paidAt: { $gte: start } } },
+      { $group: { _id: { y: { $year: '$paidAt' }, m: { $month: '$paidAt' } }, amount: { $sum: '$amount' } } },
+      { $sort: { '_id.y': 1, '_id.m': 1 } }
+    ]);
+    const series = bills.map(b => ({ month: `${b._id.y}-${String(b._id.m).padStart(2,'0')}`, amount: b.amount }));
+    res.json({ success: true, data: series });
+  } catch (e) { res.status(500).json({ success: false, message: e.message }); }
+});
+
+// Dashboard: Occupancy by block
+router.get('/dashboard/occupancy', authorizeRoles(['admin','super_admin','warden']), async (req, res) => {
+  try {
+    const blocks = await Block.find({}).select('name totalRooms currentOccupancy').lean();
+    const data = blocks.map(b => ({ block: b.name, occupancy: b.currentOccupancy || 0, totalRooms: b.totalRooms }));
+    res.json({ success: true, data });
+  } catch (e) { res.status(500).json({ success: false, message: e.message }); }
+});
+
+// Dashboard: Waste vs Served (mess)
+router.get('/dashboard/mess-waste', authorizeRoles(['admin','super_admin','warden','mess_manager']), async (req, res) => {
+  try {
+    const { messId, from, to } = req.query;
+    const q = {}; if (messId) q.messId = messId; if (from && to) q.date = { $gte: from, $lte: to };
+    const list = await MessMetrics.find(q).lean();
+    const byMeal = {};
+    list.forEach(r => { const k = r.meal; if (!byMeal[k]) byMeal[k] = { served: 0, wasted: 0 }; byMeal[k].served += r.servedCount||0; byMeal[k].wasted += r.wastedCount||0; });
+    res.json({ success: true, data: byMeal });
+  } catch (e) { res.status(500).json({ success: false, message: e.message }); }
+});
 // Mess per-meal forecast (admin)
 router.get('/mess/forecast', authorizeRoles(['admin','super_admin']), async (req, res) => {
   try {

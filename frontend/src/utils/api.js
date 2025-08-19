@@ -7,12 +7,49 @@ export const AttendanceAPI = {
   getSummary: (params) => axios.get('/api/attendance/summary', { params }),
 }
 
-// Payments endpoints
+// Payments endpoints (Razorpay-backed)
 export const PaymentsAPI = {
-  initPayment: (payload) => axios.post('/api/payments/init', payload), // {studentId, amount, reason}
-  verifyPayment: (payload) => axios.post('/api/payments/verify', payload), // gateway callback verify
-  dues: (studentId) => axios.get(`/api/payments/dues/${studentId}`),
-  receipts: (studentId) => axios.get(`/api/payments/receipts/${studentId}`),
+  // Create order for a fee type
+  createOrder: (payload) => axios.post('/api/payments/create-order', payload), // { feeType: 'hostel_fee'|'mess_fee'|'security_deposit'|'fine', amount, currency?, mealPlanCode?, installmentCode? }
+  // Verify payment after checkout success
+  verifyPayment: (payload) => axios.post('/api/payments/verify-payment', payload), // { razorpay_order_id, razorpay_payment_id, razorpay_signature, feeType, amount }
+  // Payment history for student (paginated, optional filters)
+  history: (params) => axios.get('/api/payments/history', { params }),
+  // Receipt JSON details
+  receipt: (paymentId) => axios.get(`/api/payments/receipt/${paymentId}`),
+  // Receipt PDF stream
+  receiptPdf: (paymentId) => axios.get(`/api/payments/receipt/${paymentId}/pdf`, { responseType: 'blob' }),
+  admin: {
+    listAll: (params) => axios.get('/api/payments/admin/all-payments', { params }),
+    analytics: (params) => axios.get('/api/payments/admin/analytics', { params }),
+  }
+}
+
+// Student fees summary (dues + history) via student portal
+export const StudentFeesAPI = {
+  getSummary: () => axios.get('/api/student-portal/fees'),
+}
+
+// Student portal helpers
+export const StudentPortalAPI = {
+  basics: () => axios.get('/api/student-portal/basics'),
+  idQr: () => axios.get('/api/student-portal/id/qr'),
+}
+
+// Reports endpoints
+export const ReportsAPI = {
+  messForecast: (params) => axios.get('/api/reports/mess/forecast', { params }),
+  messForecastPdf: (params) => axios.get('/api/reports/mess/forecast/pdf', { params, responseType: 'blob' }),
+  messAllocation: (params) => axios.get('/api/reports/mess-allocation', { params }),
+  wardenAllocation: (params) => axios.get('/api/reports/warden-allocation', { params }),
+  dashboardMessWaste: (params) => axios.get('/api/reports/dashboard/mess-waste', { params }),
+}
+
+// Student mess membership
+export const StudentMessAPI = {
+  join: (payload) => axios.post('/api/student-portal/mess/join', payload),
+  leave: (payload) => axios.post('/api/student-portal/mess/leave', payload),
+  get: () => axios.get('/api/student-portal/mess'),
 }
 
 // Allocation endpoints
@@ -42,22 +79,46 @@ export const MessAPI = {
 // Admin setup
 export const AdminAPI = {
   hostels: {
-    list: () => axios.get('/api/admin/hostels'),
+    // Lists and blocks come from hostel-management routes
+    list: () => axios.get('/api/hostel-management/hostels'),
+    // Create can use either admin or hostel-management; keep admin for RBAC clarity
     create: (payload) => axios.post('/api/admin/hostels', payload),
-    blocks: (hostelId) => axios.get(`/api/admin/hostels/${hostelId}/blocks`),
+    blocks: (hostelId) => axios.get(`/api/hostel-management/hostels/${hostelId}/blocks`),
   },
   mess: {
-    list: () => axios.get('/api/admin/mess'),
-    create: (payload) => axios.post('/api/admin/mess', payload),
+  list: (params) => axios.get('/api/admin/mess', { params }),
+  create: (payload) => axios.post('/api/admin/mess', payload),
+  update: (id, payload) => axios.put(`/api/admin/mess/${id}`, payload),
+  remove: (id) => axios.delete(`/api/admin/mess/${id}`),
+  },
+  rooms: {
+    // List rooms via hostel-management with filters
+    list: (params) => axios.get('/api/hostel-management/rooms', { params }),
+    create: (payload) => axios.post('/api/admin/rooms', payload),
+    update: (id, payload) => axios.put(`/api/admin/rooms/${id}`, payload),
+    remove: (id) => axios.delete(`/api/admin/rooms/${id}`),
   },
   warden: {
-    assign: (payload) => axios.post('/api/admin/warden/assign', payload),
+    // Note: backend route is /api/admin/wardens/assign
+    assign: (payload) => axios.post('/api/admin/wardens/assign', payload),
   },
   students: {
-    import: (file) => {
+    // JSON array import (legacy/simple)
+    importJson: (students, academicYear) => axios.post('/api/admin/students/import', { students, academicYear }),
+    // CSV import (recommended)
+    importCsv: (file, academicYear) => {
       const form = new FormData();
-      form.append('file', file)
-      return axios.post('/api/admin/students/import', form)
-    }
+      form.append('file', file);
+      if (academicYear) form.append('academicYear', academicYear);
+      return axios.post('/api/admin/students/import/csv', form);
+  },
+  templateCsv: () => axios.get('/api/admin/students/import/template.csv', { responseType: 'blob' })
+  },
+  allocation: {
+    autoAllocate: (payload) => axios.post('/api/hostel-management/allocation/auto-allocate', payload),
+  },
+  reports: {
+  occupancy: (params) => axios.get('/api/hostel-management/reports/occupancy', { params }),
+  vacancies: (params) => axios.get('/api/hostel-management/reports/vacancies', { params }),
   }
 }

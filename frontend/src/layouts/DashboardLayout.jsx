@@ -20,6 +20,8 @@ import {
   WrenchIcon,
   ShieldCheckIcon,
   HeartIcon,
+  CalendarDaysIcon,
+  QrCodeIcon,
 } from '@heroicons/react/24/outline'
 
 const Shell = styled.div`
@@ -180,14 +182,16 @@ const DashboardLayout = ({ children }) => {
       student: [
         { name: 'Admission', href: '/student/admission', icon: ClipboardDocumentListIcon },
         { name: 'Room Allocation', href: '/student/room-allocation', icon: BuildingOfficeIcon },
+        { name: 'Attendance', href: '/student/attendance', icon: CalendarDaysIcon },
         { name: 'Payments', href: '/student/payments', icon: CurrencyDollarIcon },
-        { name: 'Leave Requests', href: '/student/leave-requests', icon: ClipboardDocumentListIcon },
+        { name: 'Requests', href: '/student/requests', icon: ClipboardDocumentListIcon },
         { name: 'Complaints', href: '/student/complaints', icon: WrenchIcon },
         { name: 'Mess', href: '/student/mess', icon: HeartIcon },
+        { name: 'ID Card', href: '/student/id', icon: QrCodeIcon },
       ],
       warden: [
         { name: 'Students', href: '/warden/students', icon: UserGroupIcon },
-        { name: 'Leave Approvals', href: '/warden/leave-approvals', icon: ClipboardDocumentListIcon },
+        { name: 'Approvals', href: '/warden/approvals', icon: ClipboardDocumentListIcon },
         { name: 'Complaints', href: '/warden/complaints', icon: WrenchIcon },
         { name: 'Announcements', href: '/warden/announcements', icon: BellIcon },
         { name: 'Reports', href: '/warden/reports', icon: ClipboardDocumentListIcon },
@@ -195,6 +199,8 @@ const DashboardLayout = ({ children }) => {
       admin: [
         { name: 'Hostel Management', href: '/admin/hostels', icon: BuildingOfficeIcon },
         { name: 'Room Allocations', href: '/admin/allocations', icon: UserGroupIcon },
+  { name: 'Mess Management', href: '/admin/mess', icon: HeartIcon },
+  { name: 'Rooms', href: '/admin/rooms', icon: BuildingOfficeIcon },
         { name: 'User Management', href: '/admin/users', icon: UserIcon },
         { name: 'Payment Management', href: '/admin/payments', icon: CurrencyDollarIcon },
         { name: 'Reports & Analytics', href: '/admin/reports', icon: ClipboardDocumentListIcon },
@@ -207,6 +213,7 @@ const DashboardLayout = ({ children }) => {
       ],
       mess_manager: [
         { name: 'Mess Management', href: '/mess/management', icon: HeartIcon },
+        { name: 'Scanner', href: '/mess/scanner', icon: QrCodeIcon },
         { name: 'Menu Planning', href: '/mess/menu', icon: ClipboardDocumentListIcon },
         { name: 'Feedback', href: '/mess/feedback', icon: UserGroupIcon },
       ],

@@ -23,6 +23,7 @@ const disciplineRoutes = require('./routes/discipline');
 // Import middleware
 const { authenticateToken, authorizeRoles } = require('./middleware/auth');
 const errorHandler = require('./middleware/errorHandler');
+const { errors: celebrateErrors } = require('celebrate');
 const logger = require('./utils/logger');
 
 const app = express();
@@ -114,6 +115,13 @@ app.use('/api/attendance', require('./routes/attendance'));
 app.use('/api/admin', require('./routes/admin'));
 app.use('/api/reports', authenticateToken, require('./routes/reports'));
 app.use('/api/discipline', disciplineRoutes);
+app.use('/api/alerts', require('./routes/alerts'));
+app.use('/api/finance', require('./routes/finance'));
+app.use('/api/notices', require('./routes/noticeBoard'));
+app.use('/api/surveys', require('./routes/surveys'));
+app.use('/api/mess-manager', require('./routes/messManager'));
+// Start scheduled tasks
+require('./tasks/billingCron');
 
 // Socket.IO connection handling
 io.on('connection', (socket) => {
@@ -137,6 +145,7 @@ io.on('connection', (socket) => {
 app.set('io', io);
 
 // Error handling middleware
+app.use(celebrateErrors());
 app.use(errorHandler);
 
 // 404 handler

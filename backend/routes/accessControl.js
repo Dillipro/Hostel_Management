@@ -135,6 +135,19 @@ router.post('/scan', async (req, res) => {
       const deviceBlockId = deviceMeta.location.blockId?.toString?.();
       if (deviceBlockId && studentBlockId && deviceBlockId !== studentBlockId) {
         await logAccessAttempt(accessCard._id, scannerLocation, scannerType, deviceId, false, 'Wrong hostel/block entry');
+        // Raise alert for wrong hostel/block entry
+        try {
+          const Alert = require('../models/Alert');
+          await Alert.create({
+            type: 'unauthorized_entry', severity: 'high',
+            message: 'Student attempted entry to a different hostel/block',
+            studentId: accessCard.studentId?._id,
+            blockId: deviceMeta.location.blockId,
+            hostelId: deviceMeta.location.hostelId,
+            metadata: { scannerLocation, deviceId }
+          });
+          const io = global.__io; if (io && deviceMeta.location.blockId) io.to(`block:${deviceMeta.location.blockId}`).emit('alert-event', { type: 'unauthorized_entry', level: 'high' });
+        } catch (_) {}
         emitScanEvent({ success: false, action: 'deny', reason: 'Wrong hostel/block', accessCard, requiredScope, deviceMeta });
         return res.status(403).json({ success: false, message: 'Access denied: wrong block/hostel', action: 'deny', reason: 'Wrong hostel/block entry' });
       }
@@ -162,6 +175,19 @@ router.post('/scan', async (req, res) => {
         const assignedMessId = accessCard.studentId?.accessControl?.messId?.toString?.();
         if (assignedMessId && deviceMeta.location.messId.toString() !== assignedMessId) {
           await logAccessAttempt(accessCard._id, scannerLocation, scannerType, deviceId, false, 'Wrong mess');
+          // Raise alert for wrong mess entry
+          try {
+            const Alert = require('../models/Alert');
+            await Alert.create({
+              type: 'unauthorized_entry', severity: 'high',
+              message: 'Student attempted entry to a non-assigned mess',
+              studentId: accessCard.studentId?._id,
+              blockId: accessCard.studentId?.hostelApplication?.blockId,
+              messId: deviceMeta.location.messId,
+              metadata: { scannerLocation, deviceId }
+            });
+            const io = global.__io; if (io) io.to(`block:${accessCard.studentId?.hostelApplication?.blockId}`).emit('alert-event', { type: 'unauthorized_entry', level: 'high' });
+          } catch (_) {}
           emitScanEvent({ success: false, action: 'deny', reason: 'Wrong mess', accessCard, requiredScope, deviceMeta });
           return res.status(403).json({ success: false, message: 'Access denied: not your assigned mess', action: 'deny', reason: 'Wrong mess' });
         }

@@ -26,9 +26,28 @@ const SecurityDashboard = React.lazy(() => import('./pages/security/SecurityDash
 const AccountsDashboard = React.lazy(() => import('./pages/accounts/AccountsDashboard'))
 const MedicalDashboard = React.lazy(() => import('./pages/medical/MedicalDashboard'))
 
+// Feature pages
+const AttendancePage = React.lazy(() => import('./pages/student/AttendancePage'))
+const StudentPayments = React.lazy(() => import('./pages/student/payments/PaymentsPage'))
+const StudentRequests = React.lazy(() => import('./pages/student/requests/RequestsPage'))
+const MessPage = React.lazy(() => import('./pages/student/mess/MessPage'))
+const WardenApprovals = React.lazy(() => import('./pages/warden/ApprovalsPage'))
+const MessScanner = React.lazy(() => import('./pages/mess/MessScanner'))
+const AdminAllocations = React.lazy(() => import('./pages/admin/allocations/AllocationsPage'))
+const AdminReports = React.lazy(() => import('./pages/admin/reports/ReportsPage'))
+const OccupancyDashboard = React.lazy(() => import('./pages/admin/reports/OccupancyDashboard'))
+const StudentIdCard = React.lazy(() => import('./pages/student/id/StudentIdCard'))
+const PaymentsAdmin = React.lazy(() => import('./pages/admin/payments/PaymentsAdmin'))
+const AdminMess = React.lazy(() => import('./pages/admin/mess/MessManagement'))
+const AdminRooms = React.lazy(() => import('./pages/admin/rooms/RoomsManagement'))
+
 // Layout Components
 const PublicLayout = React.lazy(() => import('./layouts/PublicLayout'))
 const DashboardLayout = React.lazy(() => import('./layouts/DashboardLayout'))
+// Admin feature pages
+const AdminHostels = React.lazy(() => import('./pages/admin/hostels/HostelsManagement'))
+const AdminBlocksView = React.lazy(() => import('./pages/admin/hostels/BlocksView'))
+const AdminWardenAssign = React.lazy(() => import('./pages/admin/hostels/WardenAssign'))
 
 // Loading component
 const PageLoader = () => (
@@ -165,10 +184,13 @@ function App() {
                       <Route path="profile" element={<StudentDashboard />} />
                       <Route path="admission" element={<StudentDashboard />} />
                       <Route path="room-allocation" element={<StudentDashboard />} />
-                      <Route path="payments" element={<StudentDashboard />} />
+                      <Route path="id" element={<StudentIdCard />} />
+                      <Route path="payments" element={<StudentPayments />} />
+                      <Route path="attendance" element={<AttendancePage />} />
+                      <Route path="requests" element={<StudentRequests />} />
                       <Route path="complaints" element={<StudentDashboard />} />
                       <Route path="leave-requests" element={<StudentDashboard />} />
-                      <Route path="mess" element={<StudentDashboard />} />
+                      <Route path="mess" element={<MessPage />} />
                       <Route path="documents" element={<StudentDashboard />} />
                     </Routes>
                   </DashboardLayout>
@@ -191,6 +213,24 @@ function App() {
                   </DashboardLayout>
                 </ProtectedRoute>
               } />
+
+              {/* Warden Approvals (warden and admin) */}
+              <Route path="/warden/approvals" element={
+                <ProtectedRoute allowedRoles={['warden','admin','super_admin']}>
+                  <DashboardLayout>
+                    <WardenApprovals />
+                  </DashboardLayout>
+                </ProtectedRoute>
+              } />
+
+              {/* Mess Scanner */}
+              <Route path="/mess/scanner" element={
+                <ProtectedRoute allowedRoles={['mess_manager','admin','warden','super_admin']}>
+                  <DashboardLayout>
+                    <MessScanner />
+                  </DashboardLayout>
+                </ProtectedRoute>
+              } />
               
               {/* Admin Routes */}
               <Route path="/admin/*" element={
@@ -198,11 +238,16 @@ function App() {
                   <DashboardLayout>
                     <Routes>
                       <Route path="dashboard" element={<AdminDashboard />} />
-                      <Route path="hostels" element={<AdminDashboard />} />
-                      <Route path="allocations" element={<AdminDashboard />} />
+                      <Route path="hostels" element={<AdminHostels />} />
+                      <Route path="hostels/:hostelId" element={<AdminBlocksView />} />
+                      <Route path="hostels/:hostelId/wardens" element={<AdminWardenAssign />} />
+                      <Route path="allocations" element={<AdminAllocations />} />
                       <Route path="users" element={<AdminDashboard />} />
-                      <Route path="payments" element={<AdminDashboard />} />
-                      <Route path="reports" element={<AdminDashboard />} />
+                      <Route path="payments" element={<PaymentsAdmin />} />
+                      <Route path="mess" element={<AdminMess />} />
+                      <Route path="rooms" element={<AdminRooms />} />
+                      <Route path="reports" element={<AdminReports />} />
+                      <Route path="reports/occupancy" element={<OccupancyDashboard />} />
                       <Route path="system" element={<AdminDashboard />} />
                     </Routes>
                   </DashboardLayout>
