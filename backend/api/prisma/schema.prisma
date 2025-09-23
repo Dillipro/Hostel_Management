@@ -1,0 +1,447 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String   @id @default(uuid())
+  reg_no        String?  @unique
+  name          String
+  email         String   @unique
+  phone         String   @unique
+  role          String
+  password_hash String
+  active        Boolean  @default(true)
+  avatar_url    String?
+  
+  // Personal Details
+  dob           DateTime?
+  community     String?
+  gender        String?
+  father_name   String?
+  mother_name   String?
+  distance_from_home Int?
+  address_proof_url String?
+  category      String?
+  admission_slip_url String?
+  medical_info  String?
+  lateral_entry String?
+  
+  // Academic Details
+  semester      Int?
+  year          Int?
+  program_type  String?
+  degree        String?
+  branch        String?
+  department    String? // Keep for backward compatibility
+  
+  created_at    DateTime @default(now())
+  student       Student?
+  disciplinaryRecords DisciplinaryRecord[]
+}
+
+model HostelBlock {
+  id        String  @id @default(uuid())
+  name      String
+  type      String  // boys | girls
+  category  String? // Ambal, Marutham, etc
+  capacity  Int?
+  rc_id     String?
+  warden_id String?
+  closed_until DateTime?
+  rooms     Room[]
+  students  Student[]
+  preferences StudentPreference[]
+  allotments  Allotment[]
+  notices     RCNotice[]
+  quotas      BlockQuota[]
+}
+
+model Room {
+  id              String       @id @default(uuid())
+  hostel_block_id String
+  room_no         String
+  floor           Int?
+  capacity        Int?
+  occupied_count  Int? @default(0)
+  availability    String? // available, full, maintenance
+  maintenance     Boolean? @default(false)
+  temp_closed_until DateTime?
+  block           HostelBlock @relation(fields: [hostel_block_id], references: [id])
+  students        Student[]
+  allotments      Allotment[]
+}
+
+model Student {
+  user_id    String   @id
+  hostel_id  String?
+  room_id    String?
+  rc_id      String?
+  warden_id  String?
+  parent_contact String?
+  id_card_qr String?
+  id_card_pdf Bytes?
+  status     String   @default("pending")
+  user       User     @relation(fields: [user_id], references: [id])
+  hostel     HostelBlock? @relation(fields: [hostel_id], references: [id])
+  room       Room?    @relation(fields: [room_id], references: [id])
+  complaints Complaint[]
+  applications Application[]
+  payments   Payment[]
+  attendance AttendanceLog[]
+  feedbacks  Feedback[]
+  preferences StudentPreference[]
+  allotments  Allotment[]
+  waitlist    Waitlist[]
+  studentFees StudentFee[]
+  disciplinaryRecords DisciplinaryRecord[]
+}
+
+model Complaint {
+  id            String   @id @default(uuid())
+  student_id    String
+  block_id      String?
+  room_id       String?
+  type          String
+  priority      String
+  impact        String?
+  description   String
+  attachments   String?
+  status        String   @default("open")
+  assigned_to   String?
+  created_at    DateTime @default(now())
+  resolved_at   DateTime?
+  due_at        DateTime?
+  started_at    DateTime?
+  stopped_at    DateTime?
+  student       Student  @relation(fields: [student_id], references: [user_id])
+  letter_pdf    Bytes?
+}
+
+model Application {
+  id           String   @id @default(uuid())
+  student_id   String
+  type         String
+  data         Json?
+  status       String   @default("pending")
+  admin_remark String?
+  payment_id   String?
+  created_at   DateTime @default(now())
+  student      Student  @relation(fields: [student_id], references: [user_id])
+  pdf          Bytes?
+}
+
+model Payment {
+  id              String   @id @default(uuid())
+  student_id      String
+  amount          Float
+  fee_type        String
+  status          String   @default("created")
+  gateway_response Json?
+  receipt_url     String?
+  receipt_pdf     Bytes?
+  txn_id          String?  @unique
+  gateway_status  String?
+  gateway_ref     String?
+  created_at      DateTime @default(now())
+  student         Student  @relation(fields: [student_id], references: [user_id])
+  events          PaymentEvent[]
+}
+
+model PaymentEvent {
+  id         String   @id @default(uuid())
+  payment_id String
+  provider   String
+  type       String
+  payload    Json
+  created_at DateTime @default(now())
+  payment    Payment  @relation(fields: [payment_id], references: [id])
+}
+
+// Finance
+model FeePlan {
+  id            String    @id @default(uuid())
+  name          String
+  academic_year String
+  description   String?
+  active        Boolean   @default(true)
+  created_at    DateTime  @default(now())
+  items         FeeItem[]
+  studentFees   StudentFee[]
+}
+
+model FeeItem {
+  id        String   @id @default(uuid())
+  plan_id   String
+  name      String
+  amount    Float
+  due_date  DateTime?
+  plan      FeePlan  @relation(fields: [plan_id], references: [id])
+}
+
+model StudentFee {
+  id          String   @id @default(uuid())
+  student_id  String
+  plan_id     String
+  item_id     String?
+  amount_due  Float
+  amount_paid Float    @default(0)
+  status      String   @default("pending") // pending | partial | settled
+  assigned_on DateTime @default(now())
+  student     Student  @relation(fields: [student_id], references: [user_id])
+  plan        FeePlan  @relation(fields: [plan_id], references: [id])
+}
+
+model Reconciliation {
+  id             String   @id @default(uuid())
+  payment_id     String
+  student_fee_id String
+  amount         Float
+  reconciled_at  DateTime @default(now())
+}
+
+model AttendanceLog {
+  id        String   @id @default(uuid())
+  student_id String
+  timestamp DateTime @default(now())
+  method    String   // qr/biometric
+  location  String   // gate/mess
+  student   Student  @relation(fields: [student_id], references: [user_id])
+}
+
+model Circular {
+  id             String   @id @default(uuid())
+  title          String
+  body           String
+  attachments    String?
+  author_id      String
+  publish_at     DateTime?
+  is_published   Boolean  @default(false)
+}
+
+model Feedback {
+  id         String   @id @default(uuid())
+  student_id String
+  block_id   String?
+  type       String
+  rating     Int
+  comments   String?
+  created_at DateTime @default(now())
+  student    Student  @relation(fields: [student_id], references: [user_id])
+}
+
+// Technicians & Assets
+model Asset {
+  id          String   @id @default(uuid())
+  name        String
+  code        String   @unique
+  block_id    String?
+  location    String?
+  status      String   @default("active") // active | repair | retired
+  created_at  DateTime @default(now())
+}
+
+model WorkOrder {
+  id           String   @id @default(uuid())
+  title        String
+  description  String?
+  block_id     String?
+  asset_id     String?
+  priority     String   @default("normal") // low | normal | high | urgent
+  status       String   @default("open")   // open | assigned | in_progress | done | cancelled
+  requested_by String?
+  assigned_to  String?
+  scheduled_at DateTime?
+  due_at       DateTime?
+  created_at   DateTime @default(now())
+}
+
+model Technician {
+  id            String   @id @default(uuid())
+  name          String
+  phone         String
+  expertise     String?
+}
+
+model RCAssignment {
+  id        String   @id @default(uuid())
+  block_id  String
+  rc_id     String
+  start_date DateTime
+  end_date   DateTime?
+}
+
+model AuditLog {
+  id        String   @id @default(uuid())
+  actor_id  String
+  action    String
+  details   Json?
+  created_at DateTime @default(now())
+}
+
+model Notification {
+  id         String   @id @default(uuid())
+  user_id    String
+  title      String
+  body       String?
+  read_at    DateTime?
+  created_at DateTime @default(now())
+}
+
+model DisciplinaryRecord {
+  id          String   @id @default(uuid())
+  student_id  String
+  warden_id   String
+  block_id    String?
+  violation   String
+  severity    String   @default("minor") // minor | major | critical
+  description String?
+  action      String   // warning | fine | suspension | expulsion
+  status      String   @default("active") // active | resolved | appealed
+  issued_on   DateTime @default(now())
+  resolved_on DateTime?
+  student     Student  @relation(fields: [student_id], references: [user_id])
+  warden      User     @relation(fields: [warden_id], references: [id])
+}
+
+// Generic stored documents (PDFs)
+model Document {
+  id          String   @id @default(uuid())
+  student_id  String
+  type        String   // admission_letter | defaulter_notice | other
+  metadata    Json?
+  pdf         Bytes
+  created_at  DateTime @default(now())
+}
+
+// Generic file storage for all file types
+model File {
+  id            String   @id @default(uuid())
+  filename      String
+  original_name String
+  mime_type     String
+  size          Int
+  data          Bytes
+  uploaded_by   String
+  created_at    DateTime @default(now())
+}
+
+// Allotment and Rounds
+model AdmissionRound {
+  id           String   @id @default(uuid())
+  academic_year String
+  round_type   String   // initial | readmission | extra
+  open_date    DateTime
+  close_date   DateTime?
+  status       String   @default("open") // open | closed | finalized
+  created_at   DateTime @default(now())
+}
+
+model StudentPreference {
+  id         String   @id @default(uuid())
+  student_id String
+  rank       Int
+  block_id   String
+  weight     Int?
+  created_at DateTime @default(now())
+  student    Student  @relation(fields: [student_id], references: [user_id])
+  block      HostelBlock @relation(fields: [block_id], references: [id])
+}
+
+model Allotment {
+  id         String   @id @default(uuid())
+  student_id String
+  block_id   String
+  room_id    String?
+  bed_no     Int?
+  round_id   String?
+  status     String   @default("provisional")
+  assigned_on DateTime @default(now())
+  student    Student  @relation(fields: [student_id], references: [user_id])
+  block      HostelBlock @relation(fields: [block_id], references: [id])
+  room       Room?    @relation(fields: [room_id], references: [id])
+}
+
+model Waitlist {
+  id         String   @id @default(uuid())
+  student_id String
+  reason     String?
+  position   Int
+  round_id   String?
+  created_at DateTime @default(now())
+  student    Student  @relation(fields: [student_id], references: [user_id])
+}
+
+model SwapRequest {
+  id                    String   @id @default(uuid())
+  requester_student_id  String
+  target_student_id     String
+  status                String   @default("pending") // pending | approved | rejected
+  admin_approval        Boolean? @default(false)
+  created_at            DateTime @default(now())
+}
+
+model RCNotice {
+  id          String   @id @default(uuid())
+  block_id    String
+  title       String
+  body        String
+  attachments String?
+  publish_at  DateTime?
+  expires_at  DateTime?
+  created_by  String
+  block       HostelBlock @relation(fields: [block_id], references: [id])
+  pinned      Boolean   @default(false)
+  dept_targets String[] @default([])
+  year_targets Int[] @default([])
+  reads        NoticeRead[]
+}
+
+model NoticeRead {
+  id        String   @id @default(uuid())
+  notice_id String
+  user_id   String
+  read_at   DateTime @default(now())
+  notice    RCNotice @relation(fields: [notice_id], references: [id])
+}
+
+model BlockQuota {
+  id        String   @id @default(uuid())
+  block_id  String
+  department String
+  quota_number Int
+  block     HostelBlock @relation(fields: [block_id], references: [id])
+}
+
+model AllotmentSnapshot {
+  id         String   @id @default(uuid())
+  round_id   String?
+  created_at DateTime @default(now())
+  meta       Json?
+  items      AllotmentSnapshotItem[]
+}
+
+model AllotmentSnapshotItem {
+  id          String   @id @default(uuid())
+  snapshot_id String
+  student_id  String
+  block_id    String
+  snapshot    AllotmentSnapshot @relation(fields: [snapshot_id], references: [id])
+}
+
+model Appeal {
+  id          String   @id @default(uuid())
+  student_id  String
+  round_id    String?
+  reason      String
+  status      String   @default("pending") // pending|approved|rejected
+  created_at  DateTime @default(now())
+  decision_by String?
+  decision_at DateTime?
+  decision_note String?
+}
+

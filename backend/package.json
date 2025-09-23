@@ -1,0 +1,13 @@
+{
+  "name": "hostelconnect-backend",
+  "private": true,
+  "workspaces": [
+    "api",
+    "worker"
+  ],
+  "scripts": {
+    "dev": "concurrently \"npm run -w @hostelconnect/api dev\" \"npm run -w @hostelconnect/worker dev\"",
+    "start": "npm run -w @hostelconnect/api start"
+  },
+  "devDependencies": { "concurrently": "^9.0.1" }
+}

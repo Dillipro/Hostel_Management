@@ -1,0 +1,15 @@
+-- AlterTable
+ALTER TABLE "User" ADD COLUMN     "address_proof_url" TEXT,
+ADD COLUMN     "admission_slip_url" TEXT,
+ADD COLUMN     "branch" TEXT,
+ADD COLUMN     "category" TEXT,
+ADD COLUMN     "community" TEXT,
+ADD COLUMN     "degree" TEXT,
+ADD COLUMN     "distance_from_home" INTEGER,
+ADD COLUMN     "father_name" TEXT,
+ADD COLUMN     "gender" TEXT,
+ADD COLUMN     "lateral_entry" TEXT,
+ADD COLUMN     "medical_info" TEXT,
+ADD COLUMN     "mother_name" TEXT,
+ADD COLUMN     "program_type" TEXT,
+ADD COLUMN     "semester" INTEGER;

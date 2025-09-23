@@ -1,0 +1,13 @@
+{
+  "name": "hostelconnect-frontend",
+  "private": true,
+  "workspaces": [
+    "web",
+    "portal"
+  ],
+  "scripts": {
+    "dev": "concurrently \"npm run -w @hostelconnect/web dev\" \"npm run -w @hostelconnect/portal dev\" \"cd ../backend && npm run dev\"",
+    "start": "npm run -w @hostelconnect/portal dev"
+  },
+  "devDependencies": { "concurrently": "^9.0.1" }
+}

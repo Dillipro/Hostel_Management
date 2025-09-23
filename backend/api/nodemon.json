@@ -1,0 +1,8 @@
+{
+  "watch": ["src", "prisma/schema.prisma"],
+  "ignore": [
+    "node_modules/.prisma/**",
+    "node_modules/@prisma/**",
+    "storage/**"
+  ]
+}
