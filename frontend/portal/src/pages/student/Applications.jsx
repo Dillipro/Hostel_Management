@@ -149,6 +149,46 @@ export default function StudentApplications(){
     }
   }
 
+  const viewPdf = async (id) => {
+    try {
+      const response = await api.get(`/api/applications/${id}/pdf`, { responseType: 'blob' })
+      const url = window.URL.createObjectURL(new Blob([response.data], { type: 'application/pdf' }))
+      window.open(url, '_blank')
+    } catch (err) {
+      console.error('Failed to load PDF:', err)
+      setSnackbar({ open: true, message: 'Failed to load PDF', severity: 'error' })
+    }
+  }
+
+
+  const handleTypeChange = (newType) => {
+    setApplicationType(newType)
+    // Reset form when type changes
+    setForm({
+      purpose: '',
+      reason: '',
+      from_date: '',
+      to_date: '',
+      effective_date: '',
+      preferred_block: '',
+      // New fields for additional application types
+      device_type: 'Laptop',
+      brand_model: '',
+      mac_address: '',
+      exit_date: '',
+      exit_time: '',
+      return_date: '',
+      complaint_type: 'Plumbing',
+      description: '',
+      ticket_no: '',
+      feedback_type: 'Mess Food Quality',
+      rating: 3,
+      comments: '',
+      academic_year: '',
+      block_preferences: ['', '', '', '', '']
+    })
+  }
+
   React.useEffect(() => { loadApplications() }, [])
 
   const submitApplication = async () => {
@@ -288,6 +328,7 @@ export default function StudentApplications(){
       setSnackbar({ open: true, message: err?.response?.data?.error || 'Failed to delete application', severity: 'error' });
     }
   }
+
   return (
     <Page title="Applications">
       {/* Modern Gradient Header */}

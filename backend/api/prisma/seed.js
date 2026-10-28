@@ -7,6 +7,7 @@ async function main() {
   const adminPass = await bcrypt.hash('admin123', 10);
   const rcPass = await bcrypt.hash('rc12345', 10);
   const studentPass = await bcrypt.hash('stud1234', 10);
+  const wardenPass = await bcrypt.hash('warden123', 10);
 
   await prisma.user.upsert({
     where: { email: 'admin@example.com' },
@@ -44,6 +45,14 @@ async function main() {
     create: { email: 'rc@example.com', name: 'RC User', phone: '9000000002', role: 'rc', password_hash: rcPass }
   });
   await prisma.rCAssignment.create({ data: { block_id: boysAmbal.id, rc_id: rcUser.id, start_date: new Date() } });
+
+  const warden = await prisma.user.upsert({
+    where: { email: 'warden@example.com' },
+    update: {},
+    create: { email: 'warden@example.com', name: 'Warden User', phone: '9000000004', role: 'warden', password_hash: wardenPass }
+  });
+  // Assign warden to the Ambal block
+  await prisma.hostelBlock.update({ where: { id: boysAmbal.id }, data: { warden_id: warden.id } });
 
   const student = await prisma.user.upsert({
     where: { email: 'student1@example.com' },

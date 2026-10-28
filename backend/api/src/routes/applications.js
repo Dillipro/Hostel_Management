@@ -2,6 +2,7 @@ const express = require('express');
 const { PrismaClient } = require('@prisma/client');
 const { auth, requireRole, Roles } = require('../middleware/auth');
 const PDFDocument = require('pdfkit');
+const path = require('path');
 const prisma = new PrismaClient();
 const router = express.Router();
 
@@ -13,7 +14,19 @@ function renderApplicationPdf(a) {
     doc.on('end', () => resolve(Buffer.concat(chunks)));
 
     // Logo placeholder (text-based)
-    doc.fontSize(18).font('Helvetica-Bold').text('[ UNIVERSITY LOGO ]', { align: 'center' });
+    // Logo from assets
+    try {
+      const logoPath = path.join(__dirname, '../../../assets/CEG_logo.png');
+      doc.image(logoPath, 50, doc.y, { width: 60, height: 60 });
+    } catch (error) {
+      // Fallback if logo not found
+      doc.fontSize(12).font('Helvetica-Bold').text('[ UNIVERSITY LOGO ]', 50, doc.y);
+    }
+    
+    // Move to right side for headers
+    const headerStartY = doc.y;
+    doc.x = 120;
+    doc.y = headerStartY;
     doc.moveDown(0.5);
 
     // Main Header
